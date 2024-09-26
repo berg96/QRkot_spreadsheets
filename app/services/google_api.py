@@ -1,17 +1,17 @@
+import copy
 from datetime import datetime
 
-from aiogoogle import Aiogoogle, ValidationError
+from aiogoogle import Aiogoogle
 
 from app.core.config import settings
 
 FORMAT = '%Y/%m/%d %H:%M:%S'
 SPREADSHEET_TITLE = 'Отчёт на {}'
-SHEETS_TITLE = 'Лист1'
 SHEETS_ROW = 100
 SHEETS_COLUMN = 10
 SPREADSHEET_BODY = dict(
     properties=dict(
-        title=f'Отчет от {FORMAT}',
+        title=f'Отчет от ',
         locale='ru_RU',
     ),
     sheets=[
@@ -21,8 +21,8 @@ SPREADSHEET_BODY = dict(
                 sheetId=0,
                 title='Лист1',
                 gridProperties=dict(
-                    rowCount=100,
-                    columnCount=11,
+                    rowCount=SHEETS_ROW,
+                    columnCount=SHEETS_COLUMN,
                 )
             )
         )
@@ -37,29 +37,21 @@ COLLECTION_TIME_IN_SHEETS = (
     '=INT({collection_time}/86400) & " days, " & '
     'TEXT({collection_time}/86400-INT({collection_time}/86400); "hh:mm:ss")'
 )
-SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/{}'
-INVALID_SIZE = 'Объем данных не соответствует размеру пустой таблицы'
+INVALID_SIZE_ROW = 'Количество строк {} больше размера пустой таблицы {}'
+INVALID_SIZE_COLUMN = 'Количество колонок {} больше размера пустой таблицы {}'
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> tuple[str, str]:
     now_date_time = datetime.now().strftime(FORMAT)
     service = await wrapper_services.discover('sheets', 'v4')
-    spreadsheet_body = SPREADSHEET_BODY.copy()
+    spreadsheet_body = copy.deepcopy(SPREADSHEET_BODY)
     spreadsheet_body['properties']['title'] = SPREADSHEET_TITLE.format(
         now_date_time
     )
-    spreadsheet_body['sheets'][0]['properties']['title'] = SHEETS_TITLE
-    spreadsheet_body['sheets'][0][
-        'properties'
-    ]['gridProperties']['rowCount'] = SHEETS_ROW
-    spreadsheet_body['sheets'][0][
-        'properties'
-    ]['gridProperties']['columnCount'] = SHEETS_COLUMN
     response = await wrapper_services.as_service_account(
         service.spreadsheets.create(json=spreadsheet_body)
     )
-    spreadsheet_id = response['spreadsheetId']
-    return spreadsheet_id, SPREADSHEET_URL.format(spreadsheet_id)
+    return response['spreadsheetId'], response['spreadsheetUrl']
 
 
 async def set_user_permissions(
@@ -88,7 +80,7 @@ async def spreadsheets_update_value(
 ) -> None:
     now_date_time = datetime.now().strftime(FORMAT)
     service = await wrapper_services.discover('sheets', 'v4')
-    table_header = TABLE_HEADER.copy()
+    table_header = copy.deepcopy(TABLE_HEADER)
     table_header[0].append(now_date_time)
     table_values = [
         *table_header,
@@ -104,7 +96,16 @@ async def spreadsheets_update_value(
         ]
     ]
     if len(table_values) > SHEETS_ROW:
-        raise ValidationError(INVALID_SIZE)
+        raise ValueError(
+            INVALID_SIZE_ROW.format(len(table_values), SHEETS_ROW)
+        )
+    max_column = 0
+    for row in table_values:
+        max_column = max(len(row), max_column)
+        if len(row) > SHEETS_COLUMN:
+            raise ValueError(
+                INVALID_SIZE_COLUMN.format(len(row), SHEETS_COLUMN)
+            )
     update_body = {
         'majorDimension': 'ROWS',
         'values': table_values
@@ -112,7 +113,7 @@ async def spreadsheets_update_value(
     await wrapper_services.as_service_account(
         service.spreadsheets.values.update(
             spreadsheetId=spreadsheet_id,
-            range=f'R1C1:R{SHEETS_ROW}C{SHEETS_COLUMN}',
+            range=f'R1C1:R{len(table_values)}C{max_column}',
             valueInputOption='USER_ENTERED',
             json=update_body
         )

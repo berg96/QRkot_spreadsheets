@@ -34,6 +34,6 @@ async def get_report(
         await spreadsheets_update_value(
             spreadsheet_id, projects, wrapper_services
         )
-    except ValidationError as error:
+    except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     return spreadsheets_url
