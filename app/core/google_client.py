@@ -1,5 +1,3 @@
-import json
-
 from aiogoogle import Aiogoogle
 from aiogoogle.auth.creds import ServiceAccountCreds
 
