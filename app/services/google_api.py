@@ -14,6 +14,10 @@ TABLE_HEADER = [
     ['Топ проектов по скорости закрытия'],
     ['Название проекта', 'Время сбора', 'Описание']
 ]
+COLLECTION_TIME_IN_SHEETS = (
+    '=INT({collection_time}/86400) & " days, " & '
+    'TEXT({collection_time}/86400-INT({collection_time}/86400); "hh:mm:ss")'
+)
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> str:
@@ -76,10 +80,8 @@ async def spreadsheets_update_value(
         table_values.append(
             [
                 project['name'],
-                (
-                    f'=INT({project["collection_time"]}/86400) & " days, " & '
-                    f'TEXT({project["collection_time"]}/86400 - '
-                    f'INT({project["collection_time"]}/86400); "hh:mm:ss")'
+                COLLECTION_TIME_IN_SHEETS.format(
+                    collection_time=project['collection_time']
                 ),
                 project['description']
             ]

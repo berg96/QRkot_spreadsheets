@@ -9,8 +9,6 @@ from app.schemas.charity_project import (
     CharityProjectCreate, CharityProjectUpdate
 )
 
-DATE_FORMAT = '1 day, 0:34:59.516646'
-
 
 class CRUDCharityProject(CRUDBase[
     CharityProject,

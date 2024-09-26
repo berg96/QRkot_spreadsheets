@@ -10,8 +10,6 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-# with open(settings.credentials_file, 'r') as file:
-#     service_account_info = json.load(file)
 INFO = {
     'type': settings.type,
     'project_id': settings.project_id,
