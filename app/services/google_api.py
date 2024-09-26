@@ -11,7 +11,7 @@ SHEETS_ROW = 100
 SHEETS_COLUMN = 10
 SPREADSHEET_BODY = dict(
     properties=dict(
-        title=f'Отчет от ',
+        title='Отчет от ',
         locale='ru_RU',
     ),
     sheets=[

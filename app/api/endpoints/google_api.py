@@ -1,4 +1,4 @@
-from aiogoogle import Aiogoogle, ValidationError
+from aiogoogle import Aiogoogle
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
