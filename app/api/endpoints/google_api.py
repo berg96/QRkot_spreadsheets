@@ -1,5 +1,5 @@
-from aiogoogle import Aiogoogle
-from fastapi import APIRouter, Depends
+from aiogoogle import Aiogoogle, ValidationError
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_async_session
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post(
     '/',
-    response_model=list[dict],
+    response_model=str,
     dependencies=[Depends(current_superuser)],
 )
 async def get_report(
@@ -26,9 +26,14 @@ async def get_report(
     projects = await charity_project_crud.get_projects_by_completion_rate(
         session
     )
-    spreadsheet_id = await spreadsheets_create(wrapper_services)
-    await set_user_permissions(spreadsheet_id, wrapper_services)
-    await spreadsheets_update_value(
-        spreadsheet_id, projects, wrapper_services
+    spreadsheet_id, spreadsheets_url = await spreadsheets_create(
+        wrapper_services
     )
-    return projects
+    await set_user_permissions(spreadsheet_id, wrapper_services)
+    try:
+        await spreadsheets_update_value(
+            spreadsheet_id, projects, wrapper_services
+        )
+    except ValidationError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    return spreadsheets_url

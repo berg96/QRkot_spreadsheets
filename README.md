@@ -29,6 +29,7 @@ tg: [@Berg1005](https://t.me/berg1005)
 * SQLAlchemy
 * Alembic
 * Pydantic
+* Aiogoogle
 
 ## Как запустить проект
 
@@ -79,4 +80,5 @@ uvicorn app.main:app --reload
 ```
 Документация API при запущенном сервере:
 
-[http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/)
+[http://127.0.0.1:8000/docs/](http://127.0.0.1:8000/docs/) - Swagger
+[http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/) - ReDoc
