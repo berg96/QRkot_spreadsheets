@@ -7,7 +7,7 @@
 
 -i https://pypi.org/simple
 aiofiles==0.8.0; python_version >= '3.6' and python_version < '4'
-aiogoogle==4.2.0
+aiogoogle==5.13.0
 aiohttp==3.8.1; python_version >= '3.6'
 aiosignal==1.2.0; python_version >= '3.6'
 aiosqlite==0.17.0

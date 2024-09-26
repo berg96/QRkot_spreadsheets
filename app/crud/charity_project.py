@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import extract, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
@@ -8,6 +8,8 @@ from app.models import CharityProject
 from app.schemas.charity_project import (
     CharityProjectCreate, CharityProjectUpdate
 )
+
+DATE_FORMAT = '1 day, 0:34:59.516646'
 
 
 class CRUDCharityProject(CRUDBase[
@@ -25,6 +27,25 @@ class CRUDCharityProject(CRUDBase[
                 CharityProject.name == project_name
             )
         )).scalars().first()
+
+    async def get_projects_by_completion_rate(
+            self,
+            session: AsyncSession,
+    ) -> list[dict]:
+        projects = await session.execute(
+            select([
+                CharityProject.name,
+                CharityProject.description,
+                (
+                    extract('epoch', CharityProject.close_date) -
+                    extract('epoch', CharityProject.create_date)
+                ).label('collection_time')
+            ]).where(
+                CharityProject.fully_invested == True  # noqa
+            ).order_by('collection_time')
+        )
+        projects = projects.fetchall()
+        return projects
 
 
 charity_project_crud = CRUDCharityProject(CharityProject)
