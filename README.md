@@ -80,6 +80,6 @@ uvicorn app.main:app --reload
 ```
 Документация API при запущенном сервере:
 
-[http://127.0.0.1:8000/docs/ - Swagger](http://127.0.0.1:8000/docs/)
+[Swagger](http://127.0.0.1:8000/docs/)
 
-[http://127.0.0.1:8000/redoc/ - ReDoc](http://127.0.0.1:8000/redoc/)
+[ReDoc](http://127.0.0.1:8000/redoc/)

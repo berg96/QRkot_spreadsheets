@@ -37,8 +37,14 @@ COLLECTION_TIME_IN_SHEETS = (
     '=INT({collection_time}/86400) & " days, " & '
     'TEXT({collection_time}/86400-INT({collection_time}/86400); "hh:mm:ss")'
 )
-INVALID_SIZE_ROW = 'Количество строк {} больше размера пустой таблицы {}'
-INVALID_SIZE_COLUMN = 'Количество колонок {} больше размера пустой таблицы {}'
+INVALID_SIZE_ROW = (
+    f'Количество строк {{}} обновляемых данных '
+    f'больше размера пустой таблицы {SHEETS_ROW}'
+)
+INVALID_SIZE_COLUMN = (
+    f'Количество колонок {{}} обновляемых данных '
+    f'больше размера пустой таблицы {SHEETS_COLUMN}'
+)
 
 
 async def spreadsheets_create(wrapper_services: Aiogoogle) -> tuple[str, str]:
@@ -97,15 +103,13 @@ async def spreadsheets_update_value(
     ]
     if len(table_values) > SHEETS_ROW:
         raise ValueError(
-            INVALID_SIZE_ROW.format(len(table_values), SHEETS_ROW)
+            INVALID_SIZE_ROW.format(len(table_values))
         )
-    max_column = 0
-    for row in table_values:
-        max_column = max(len(row), max_column)
-        if len(row) > SHEETS_COLUMN:
-            raise ValueError(
-                INVALID_SIZE_COLUMN.format(len(row), SHEETS_COLUMN)
-            )
+    max_column = max(map(len, table_values))
+    if max_column > SHEETS_COLUMN:
+        raise ValueError(
+            INVALID_SIZE_COLUMN.format(max_column)
+        )
     update_body = {
         'majorDimension': 'ROWS',
         'values': table_values
